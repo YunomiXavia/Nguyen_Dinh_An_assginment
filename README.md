@@ -315,10 +315,10 @@ def detect_faces(image_paths, scaler, best_clf, W, b, confthresh=0.5, confthresh
 
 # Đường dẫn đến các ảnh kiểm tra
 image_paths = [
-    'path/to/img1.jpg',
-    'path/to/img2.jpg',
-    'path/to/img3.jpg',
-    'path/to/img4.jpg'
+    'images/img1.jpg',
+    'images/img2.jpg',
+    'images/img3.jpg',
+    'images/img4.jpg'
 ]
 
 # Phát hiện khuôn mặt trên các ảnh kiểm tra
