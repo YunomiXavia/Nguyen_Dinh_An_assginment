@@ -10,7 +10,8 @@ Mục tiêu xây dựng bài toán là xây dựng một mô hình Machine learn
 ## Phần 1: Chuẩn bị dữ liệu
 
 ### Bước 1.1: Input dữ liệu và trực quan hóa dữ liệu
-Dữ liệu huấn luyện sẽ được tải và hiển thị để hiểu rõ hơn về các mẫu dương và âm.
+#### Mục đích
+Tải và hiển thị dữ liệu để hiểu rõ hơn về các mẫu dương (có khuôn mặt) và âm (không có khuôn mặt).
 
 ```python
 import scipy.io as sio
@@ -35,9 +36,13 @@ def visualize_samples(pos_samples, neg_samples):
 pos_samples, neg_samples = load_data()
 visualize_samples(pos_samples, neg_samples)
 ```
+- `load_data`: Hàm này tải dữ liệu mẫu dương và âm từ các file .mat.
+- `visualize_samples`: Hàm này hiển thị một ảnh mẫu dương và một ảnh mẫu âm bằng matplotlib.
+- `pos_samples` và `neg_samples`: Các biến này lưu trữ các mẫu dương và âm sau khi được tải lên.
 
 ### Bước 1.2: Chuẩn hóa mean-variance
-Chuẩn hóa dữ liệu để đưa các giá trị về cùng một phạm vi nhằm giúp mô hình huấn luyện tốt hơn.
+#### Mục đích
+Chuẩn hóa dữ liệu để đưa các giá trị về cùng một phạm vi, giúp mô hình huấn luyện tốt hơn.
 
 ```python
 import cv2
@@ -55,9 +60,12 @@ def normalize_images(images):
 pos_samples = normalize_images(pos_samples)
 neg_samples = normalize_images(neg_samples)
 ```
+- `normalize_images`: Hàm này chuẩn hóa ảnh bằng cách sử dụng OpenCV để đưa các giá trị pixel về khoảng từ 0 đến 255.
+- `cv2.normalize`: Hàm này từ OpenCV thực hiện chuẩn hóa ảnh.
 
 ### Bước 1.3: Định dạng dữ liệu
-Định dạng ảnh để phù hợp với đầu vào của SVM. Dữ liệu sẽ được chia thành các tập huấn luyện, kiểm tra và xác nhận.
+#### Mục đích
+Định dạng ảnh để phù hợp với đầu vào của SVM, bao gồm chuyển đổi sang ảnh xám, tăng cường dữ liệu và trích xuất đặc trưng HOG.
 
 ```python
 from sklearn.preprocessing import StandardScaler
@@ -112,11 +120,17 @@ X = np.vstack((X_pos_hog, X_neg_hog))
 # Tạo nhãn: 1 cho các mẫu dương và 0 cho các mẫu âm
 y = np.hstack((np.ones(X_pos_hog.shape[0]), np.zeros(X_neg_hog.shape[0])))
 ```
+- `to_grayscale`: Hàm này chuyển đổi ảnh màu sang ảnh xám.
+- `augment_data`: Hàm này tăng cường dữ liệu bằng cách lật ảnh.
+- `extract_hog_features`: Hàm này trích xuất đặc trưng HOG từ các ảnh.
+- `cv2.resize`: Hàm này từ OpenCV để thay đổi kích thước ảnh.
+- `hog`: Hàm từ skimage để trích xuất đặc trưng HOG.
 
 ## Phần 2: Phân loại SVM
 
 ### Bước 2.1: Huấn luyện và kiểm tra SVM
-Chúng ta sẽ sử dụng SVM để huấn luyện và kiểm tra trên dữ liệu. Giá trị của hyper-plane \(W\) sẽ được tính toán từ các support vectors và alpha-coefficients.
+#### Mục đích
+Huấn luyện SVM và kiểm tra trên dữ liệu. Tìm giá trị C tốt nhất để tối ưu hóa mô hình.
 
 ```python
 from sklearn import svm
@@ -159,9 +173,13 @@ def train_model(X, y):
 # Huấn luyện mô hình
 scaler, best_clf, W, b, X_train, y_train, X_val, y_val = train_model(X, y)
 ```
+- `train_model`: Hàm này huấn luyện và đánh giá mô hình SVM. Tìm giá trị C tốt nhất để tối ưu hóa mô hình.
+- `svm.SVC`: Hàm từ sklearn để tạo mô hình SVM.
+- `train_test_split`: Hàm này chia dữ liệu thành các tập huấn luyện, kiểm tra và xác nhận.
 
 ### Bước 2.2: Tính toán lại confidence values
-Tính toán lại giá trị confidence cho tập huấn luyện và xác nhận sử dụng \(W\) và bias \(b\).
+#### Mục đích
+Tính toán lại giá trị confidence cho tập huấn luyện và tập validation sử dụng \(W\) và bias \(b\).
 
 ```python
 # Tính toán giá trị confidence
@@ -178,9 +196,12 @@ val_accuracy = accuracy_score(y_val, val_confidences > 0)
 print(f"Độ chính xác trên tập huấn luyện: {train_accuracy}")
 print(f"Độ chính xác trên tập validation: {val_accuracy}")
 ```
+- `compute_confidence`: Hàm này tính toán giá trị confidence cho các mẫu dựa trên W và b.
+- `accuracy_score`: Hàm từ sklearn để tính độ chính xác của mô hình.
 
 ### Bước 2.3: Trực quan hóa \(W\)
-Hiển thị \(W\) như một hình ảnh. Quan sát hình dạng của \(W\) và hiểu tại sao nó trông giống như một khuôn mặt. Tiếp tục huấn luyện SVM với các giá trị \(C\) khác nhau và chọn giá trị \(C\) tốt nhất.
+#### Mục đích
+Hiển thị \(W\) như một hình ảnh để quan sát hình dạng của nó và hiểu tại sao nó trông giống như một khuôn mặt.
 
 ```python
 import matplotlib.pyplot as plt
@@ -194,19 +215,24 @@ if W.shape[0] == target_size[0] * target_size[1]:
 else:
     print(f"Không thể chuyển đổi mảng kích thước {W.shape[0]} thành kích thước {target_size}")
 ```
+- `plt.imshow`: Hàm từ matplotlib để hiển thị hình ảnh.
+- `W.reshape`: Chuyển đổi W thành kích thước của ảnh để trực quan hóa.
 
 ### Bước 2.4: Lý giải và thử nghiệm
+#### Mục đích
 Lý giải tại sao giá trị \(W\) nhỏ cho \(C\) lại trông giống khuôn mặt hơn và tại sao không thể sử dụng ảnh trung bình như một hyper-plane.
 
 ```markdown
 - Khi giá trị \(C\) nhỏ, SVM sẽ ít nhạy cảm hơn với các lỗi trên dữ liệu huấn luyện, điều này có thể dẫn đến việc tìm kiếm một hyper-plane tương tự với khuôn mặt trung bình.
 - Tuy nhiên, việc sử dụng ảnh trung bình như một hyper-plane sẽ không đảm bảo tính phân biệt giữa các mẫu dương và âm.
 ```
+- \(C\) nhỏ làm SVM ít nhạy cảm với lỗi, dẫn đến hyper-plane giống khuôn mặt trung bình.
+- Ảnh trung bình không đảm bảo tính phân biệt giữa các mẫu.
 
 ## Phần 3: Phát hiện khuôn mặt
-
 ### Bước 3.1: Phát hiện khuôn mặt với kỹ thuật “scanning-window”
-Áp dụng kỹ thuật phát hiện khuôn mặt “scanning-window” trên các ảnh kiểm tra. Chúng ta sẽ sử dụng non-maxima suppression (NMS) để loại bỏ các phản hồi trùng lặp.
+#### Mục đích
+Áp dụng kỹ thuật phát hiện khuôn mặt “scanning-window” trên các ảnh kiểm tra. Sử dụng non-maxima suppression (NMS) để loại bỏ các phản hồi trùng lặp.
 
 ```python
 import os
@@ -298,8 +324,11 @@ image_paths = [
 # Phát hiện khuôn mặt trên các ảnh kiểm tra
 detect_faces(image_paths, scaler, best_clf, W, b)
 ```
+- `nms`: Hàm này thực hiện non-maxima suppression để loại bỏ các phát hiện trùng lặp.
+- `detect_faces`: Hàm này phát hiện khuôn mặt trên các ảnh kiểm tra sử dụng kỹ thuật scanning-window và NMS.
 
 ### Bước 3.2: Thử nghiệm với các ngưỡng khác nhau
+#### Mục đích
 Thử nghiệm phát hiện khuôn mặt với các giá trị ngưỡng khác nhau cho cả bước tiền chọn lọc và bước NMS.
 
 ```python
@@ -309,6 +338,7 @@ for conf_thresh in [0.2, 0.5, 0.8]:
         print(f"Thử nghiệm với ngưỡng confidence {conf_thresh} và ngưỡng NMS {nms_thresh}")
         detect_faces(image_paths, scaler, best_clf, W, b, conf_thresh, nms_thresh)
 ```
+- Thử nghiệm với các giá trị ngưỡng khác nhau để tìm ra các tham số tốt nhất cho việc phát hiện khuôn mặt.
 
 ## Kết luận
-Qua các bước trên, em đã xây dựng và triển khai một hệ thống phát hiện khuôn mặt cơ bản sử dụng SVM và các đặc trưng HOG. Mô hình này có thể chu phát hiện khuôn mặt trong các ảnh kiểm tra với độ chính xác cao :(( và loại bỏ các phát hiện trùng lặp bằng kỹ thuật NMS.
+Qua các bước trên, em đã xây dựng và triển khai một hệ thống phát hiện khuôn mặt cơ bản sử dụng SVM và các đặc trưng HOG. Tuy nhiên mô hình này chưa thể phát hiện khuôn mặt trong các ảnh kiểm tra với độ chính xác cao :(( mặc dù để sử dụng phương pháp loại bỏ các phát hiện trùng lặp bằng kỹ thuật NMS.
